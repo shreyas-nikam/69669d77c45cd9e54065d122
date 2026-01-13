@@ -1,0 +1,30 @@
+{
+    "run_id": "f7cd2217-32bb-4639-b091-05600c70f32b",
+    "generated_at": "2026-01-13T15:54:05.156237",
+    "team_or_user": "Sarah (AI Program Lead)",
+    "app_version": "1.0.0",
+    "inputs_hash": null,
+    "outputs_hash": null,
+    "artifacts": [
+        {
+            "name": "model_inventory.csv",
+            "path": "output_artifacts/model_inventory.csv",
+            "sha256": "e399b07de2a91d3de2b9d34eba65bf40af3d5896b4a722866d6db4e84d845379"
+        },
+        {
+            "name": "risk_tiering.json",
+            "path": "output_artifacts/risk_tiering.json",
+            "sha256": "c213c0423394755beb1ab5d4410d377623384a1a68b51175be57c377f415a9a6"
+        },
+        {
+            "name": "lifecycle_risk_map.json",
+            "path": "output_artifacts/lifecycle_risk_map.json",
+            "sha256": "9eeaf156548c9660acdd625795d85a50e153141fa8282f4dbc43f4f2ddb097dd"
+        },
+        {
+            "name": "case1_executive_summary.md",
+            "path": "output_artifacts/case1_executive_summary.md",
+            "sha256": "817980721e9fe05d4edec3eef0d23a8e74b182f47ef70269e6f0c01a32eaeb2e"
+        }
+    ]
+}

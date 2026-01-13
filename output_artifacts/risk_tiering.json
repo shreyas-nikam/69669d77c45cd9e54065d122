@@ -1,0 +1,71 @@
+[
+    {
+        "system_id": "f0d45750-74f0-400e-ad0a-83227e0174b6",
+        "risk_tier": "TIER_1",
+        "score_breakdown": {
+            "decision_criticality_score": 5,
+            "data_sensitivity_score": 5,
+            "automation_level_score": 5,
+            "ai_type_score": 3,
+            "deployment_mode_score": 4,
+            "external_dependencies_score": 2,
+            "total_score": 24
+        },
+        "justification": "The AI system 'ML-based Credit Underwriting Model' scored 24 points, placing it in TIER_1 based on its characteristics.",
+        "required_controls": [
+            "Independent validation",
+            "Full documentation pack",
+            "Robustness & security testing",
+            "Bias & interpretability assessment",
+            "Monitoring dashboards",
+            "Formal change control & rollback",
+            "Incident response plan"
+        ],
+        "computed_at": "2026-01-13T15:54:05.145721",
+        "scoring_version": "1.0"
+    },
+    {
+        "system_id": "43eb1ca1-dfa9-4294-97ab-175c99059369",
+        "risk_tier": "TIER_2",
+        "score_breakdown": {
+            "decision_criticality_score": 3,
+            "data_sensitivity_score": 4,
+            "automation_level_score": 1,
+            "ai_type_score": 4,
+            "deployment_mode_score": 3,
+            "external_dependencies_score": 2,
+            "total_score": 17
+        },
+        "justification": "The AI system 'LLM-based Customer Support Assistant' scored 17 points, placing it in TIER_2 based on its characteristics.",
+        "required_controls": [
+            "Peer validation",
+            "Standard documentation",
+            "Basic robustness & security tests",
+            "Periodic monitoring"
+        ],
+        "computed_at": "2026-01-13T15:54:05.145730",
+        "scoring_version": "1.0"
+    },
+    {
+        "system_id": "8278f7e6-0422-4048-887a-bf8d303fcb7b",
+        "risk_tier": "TIER_2",
+        "score_breakdown": {
+            "decision_criticality_score": 1,
+            "data_sensitivity_score": 2,
+            "automation_level_score": 5,
+            "ai_type_score": 5,
+            "deployment_mode_score": 1,
+            "external_dependencies_score": 2,
+            "total_score": 16
+        },
+        "justification": "The AI system 'Agentic Internal Report Generator' scored 16 points, placing it in TIER_2 based on its characteristics.",
+        "required_controls": [
+            "Peer validation",
+            "Standard documentation",
+            "Basic robustness & security tests",
+            "Periodic monitoring"
+        ],
+        "computed_at": "2026-01-13T15:54:05.145734",
+        "scoring_version": "1.0"
+    }
+]

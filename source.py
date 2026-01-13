@@ -11,10 +11,13 @@ from enum import Enum
 
 print("Libraries imported successfully and environment prepared.")
 # Define Enumerations for AI System attributes
+
+
 class AIType(str, Enum):
     ML = "ML"
     LLM = "LLM"
     AGENT = "AGENT"
+
 
 class DeploymentMode(str, Enum):
     BATCH = "BATCH"
@@ -22,26 +25,31 @@ class DeploymentMode(str, Enum):
     HUMAN_IN_LOOP = "HUMAN_IN_LOOP"
     INTERNAL_ONLY = "INTERNAL_ONLY"
 
+
 class DataSensitivity(str, Enum):
     PUBLIC = "PUBLIC"
     INTERNAL = "INTERNAL"
     CONFIDENTIAL = "CONFIDENTIAL"
     REGULATED_PII = "REGULATED_PII"
 
+
 class DecisionCriticality(str, Enum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
+
 
 class AutomationLevel(str, Enum):
     ADVISORY = "ADVISORY"
     HUMAN_APPROVAL = "HUMAN_APPROVAL"
     FULLY_AUTOMATED = "FULLY_AUTOMATED"
 
+
 class RiskTier(str, Enum):
-    TIER_1 = "TIER_1" # High Risk
-    TIER_2 = "TIER_2" # Medium Risk
-    TIER_3 = "TIER_3" # Low Risk
+    TIER_1 = "TIER_1"  # High Risk
+    TIER_2 = "TIER_2"  # Medium Risk
+    TIER_3 = "TIER_3"  # Low Risk
+
 
 class LifecyclePhase(str, Enum):
     DESIGN = "DESIGN"
@@ -52,6 +60,7 @@ class LifecyclePhase(str, Enum):
     MONITORING = "MONITORING"
     MAINTENANCE = "MAINTENANCE"
     DECOMMISSIONING = "DECOMMISSIONING"
+
 
 class RiskCategory(str, Enum):
     BIAS_FAIRNESS = "BIAS_FAIRNESS"
@@ -79,6 +88,7 @@ class SystemRecord(BaseModel):
     external_dependencies: List[str] = Field(default_factory=list)
     last_updated: datetime = Field(default_factory=datetime.now)
 
+
 class RiskTierResult(BaseModel):
     system_id: UUID4
     risk_tier: RiskTier
@@ -88,15 +98,16 @@ class RiskTierResult(BaseModel):
     computed_at: datetime = Field(default_factory=datetime.now)
     scoring_version: str = "1.0"
 
+
 class LifecycleRisk(BaseModel):
     risk_id: UUID4 = Field(default_factory=uuid.uuid4)
     system_id: UUID4
     lifecycle_phase: LifecyclePhase
     risk_category: RiskCategory
     risk_statement: str
-    impact: int = Field(..., ge=1, le=5) # 1-5
-    likelihood: int = Field(..., ge=1, le=5) # 1-5
-    severity: int = Field(default=0) # impact * likelihood
+    impact: int = Field(..., ge=1, le=5)  # 1-5
+    likelihood: int = Field(..., ge=1, le=5)  # 1-5
+    severity: int = Field(default=0)  # impact * likelihood
     mitigation: Optional[str] = None
     owner_role: Optional[str] = None
     evidence_links: List[str] = Field(default_factory=list)
@@ -105,10 +116,12 @@ class LifecycleRisk(BaseModel):
     def model_post_init(self, __context: any):
         self.severity = self.impact * self.likelihood
 
+
 class EvidenceArtifact(BaseModel):
     name: str
     path: str
     sha256: str
+
 
 class EvidenceManifest(BaseModel):
     run_id: UUID4 = Field(default_factory=uuid.uuid4)
@@ -169,13 +182,14 @@ for data in ai_systems_data:
         print(f"Error validating system record: {e}")
 
 # Display the inventory in a tabular format
-inventory_df = pd.DataFrame([s.model_dump() for s in system_records])
-# Convert UUID and datetime objects to strings for better display in DataFrame
-inventory_df['system_id'] = inventory_df['system_id'].astype(str)
-inventory_df['last_updated'] = inventory_df['last_updated'].dt.strftime('%Y-%m-%d %H:%M:%S')
+inventory_df = pd.DataFrame([s.model_dump(mode='json')
+                            for s in system_records])
+# system_id is already a string from mode='json', last_updated needs formatting
+inventory_df['last_updated'] = pd.to_datetime(inventory_df['last_updated']).dt.strftime(
+    '%Y-%m-%d %H:%M:%S')
 
 print("--- AI System Inventory ---")
-display(inventory_df)
+# display(inventory_df)
 
 # Store system_id mapping for easy lookup
 system_id_map = {str(s.system_id): s.name for s in system_records}
@@ -189,8 +203,12 @@ SCORING_RUBRIC = {
 }
 
 # Mapping external dependencies to a score
+
+
 def score_external_dependencies(dependencies: List[str]) -> int:
-    return 2 if dependencies else 0 # 2 points if any external dependencies exist, 0 otherwise
+    # 2 points if any external dependencies exist, 0 otherwise
+    return 2 if dependencies else 0
+
 
 TIER_THRESHOLDS = {
     "TIER_1_MIN": 22,
@@ -221,6 +239,7 @@ REQUIRED_CONTROLS = {
     ]
 }
 
+
 def calculate_risk_tier(system: SystemRecord) -> RiskTierResult:
     """Calculates the risk tier for an AI system based on defined scoring logic."""
     score_breakdown = {
@@ -240,7 +259,7 @@ def calculate_risk_tier(system: SystemRecord) -> RiskTierResult:
         risk_tier = RiskTier.TIER_1
     elif TIER_THRESHOLDS["TIER_2_MIN"] <= total_score <= TIER_THRESHOLDS["TIER_2_MAX"]:
         risk_tier = RiskTier.TIER_2
-    else: # total_score <= TIER_THRESHOLDS["TIER_3_MAX"]
+    else:  # total_score <= TIER_THRESHOLDS["TIER_3_MAX"]
         risk_tier = RiskTier.TIER_3
 
     justification = (
@@ -256,27 +275,33 @@ def calculate_risk_tier(system: SystemRecord) -> RiskTierResult:
         required_controls=REQUIRED_CONTROLS[risk_tier]
     )
 
+
 # Apply risk tiering to all inventoried systems
 risk_tier_results: List[RiskTierResult] = []
 for system in system_records:
     risk_tier_results.append(calculate_risk_tier(system))
 
 # Display risk tiering results in a tabular format
-risk_tier_df = pd.DataFrame([r.model_dump() for r in risk_tier_results])
-risk_tier_df['system_id'] = risk_tier_df['system_id'].astype(str)
-risk_tier_df['system_name'] = risk_tier_df['system_id'].map(system_id_map) # Add system name for clarity
-risk_tier_df['computed_at'] = risk_tier_df['computed_at'].dt.strftime('%Y-%m-%d %H:%M:%S')
+risk_tier_df = pd.DataFrame([r.model_dump(mode='json')
+                            for r in risk_tier_results])
+# system_id is already a string from mode='json'
+risk_tier_df['system_name'] = risk_tier_df['system_id'].map(
+    system_id_map)  # Add system name for clarity
+risk_tier_df['computed_at'] = pd.to_datetime(risk_tier_df['computed_at']).dt.strftime(
+    '%Y-%m-%d %H:%M:%S')
 
 # Reorder columns for better readability
-risk_tier_df = risk_tier_df[['system_name', 'system_id', 'risk_tier', 'score_breakdown', 'justification', 'required_controls', 'computed_at', 'scoring_version']]
+risk_tier_df = risk_tier_df[['system_name', 'system_id', 'risk_tier', 'score_breakdown',
+                             'justification', 'required_controls', 'computed_at', 'scoring_version']]
 
 print("\n--- AI System Risk Tiering Results ---")
-display(risk_tier_df)
+# display(risk_tier_df)
 # Define lifecycle risks for each AI system
 lifecycle_risks: List[LifecycleRisk] = []
 
 # ML-based Credit Underwriting Model (Tier 1)
-system_id_credit_model = next(s.system_id for s in system_records if s.name == "ML-based Credit Underwriting Model")
+system_id_credit_model = next(
+    s.system_id for s in system_records if s.name == "ML-based Credit Underwriting Model")
 lifecycle_risks.extend([
     LifecycleRisk(
         system_id=system_id_credit_model,
@@ -317,7 +342,8 @@ lifecycle_risks.extend([
 ])
 
 # LLM-based Customer Support Assistant (Tier 2)
-system_id_llm_assistant = next(s.system_id for s in system_records if s.name == "LLM-based Customer Support Assistant")
+system_id_llm_assistant = next(
+    s.system_id for s in system_records if s.name == "LLM-based Customer Support Assistant")
 lifecycle_risks.extend([
     LifecycleRisk(
         system_id=system_id_llm_assistant,
@@ -349,7 +375,8 @@ lifecycle_risks.extend([
 ])
 
 # Agentic Internal Report Generator (Tier 3)
-system_id_agent_report = next(s.system_id for s in system_records if s.name == "Agentic Internal Report Generator")
+system_id_agent_report = next(
+    s.system_id for s in system_records if s.name == "Agentic Internal Report Generator")
 lifecycle_risks.extend([
     LifecycleRisk(
         system_id=system_id_agent_report,
@@ -375,18 +402,21 @@ lifecycle_risks.extend([
 lifecycle_risks.sort(key=lambda x: x.severity, reverse=True)
 
 # Display lifecycle risks in a tabular format
-lifecycle_risk_df = pd.DataFrame([lr.model_dump() for lr in lifecycle_risks])
-lifecycle_risk_df['system_id'] = lifecycle_risk_df['system_id'].astype(str)
-lifecycle_risk_df['risk_id'] = lifecycle_risk_df['risk_id'].astype(str)
-lifecycle_risk_df['system_name'] = lifecycle_risk_df['system_id'].map(system_id_map)
-lifecycle_risk_df['created_at'] = lifecycle_risk_df['created_at'].dt.strftime('%Y-%m-%d %H:%M:%S')
+lifecycle_risk_df = pd.DataFrame(
+    [lr.model_dump(mode='json') for lr in lifecycle_risks])
+# system_id and risk_id are already strings from mode='json'
+lifecycle_risk_df['system_name'] = lifecycle_risk_df['system_id'].map(
+    system_id_map)
+lifecycle_risk_df['created_at'] = pd.to_datetime(lifecycle_risk_df['created_at']).dt.strftime(
+    '%Y-%m-%d %H:%M:%S')
 
 # Reorder columns for better readability, putting system_name first
-lifecycle_risk_df = lifecycle_risk_df[['system_name', 'risk_statement', 'lifecycle_phase', 'risk_category', 'impact', 'likelihood', 'severity', 'mitigation', 'owner_role', 'evidence_links', 'created_at', 'system_id', 'risk_id']]
+lifecycle_risk_df = lifecycle_risk_df[['system_name', 'risk_statement', 'lifecycle_phase', 'risk_category', 'impact',
+                                       'likelihood', 'severity', 'mitigation', 'owner_role', 'evidence_links', 'created_at', 'system_id', 'risk_id']]
 
 
 print("\n--- AI System Lifecycle Risk Map (Sorted by Severity) ---")
-display(lifecycle_risk_df)
+# display(lifecycle_risk_df)
 # Create a directory for output artifacts
 output_dir = "output_artifacts"
 if not os.path.exists(output_dir):
@@ -395,12 +425,16 @@ if not os.path.exists(output_dir):
 # Define file paths for artifacts
 model_inventory_csv_path = os.path.join(output_dir, "model_inventory.csv")
 risk_tiering_json_path = os.path.join(output_dir, "risk_tiering.json")
-lifecycle_risk_map_json_path = os.path.join(output_dir, "lifecycle_risk_map.json")
-executive_summary_md_path = os.path.join(output_dir, "case1_executive_summary.md")
+lifecycle_risk_map_json_path = os.path.join(
+    output_dir, "lifecycle_risk_map.json")
+executive_summary_md_path = os.path.join(
+    output_dir, "case1_executive_summary.md")
 
 # Function to write a DataFrame to CSV
+
+
 def export_dataframe_to_csv(df: pd.DataFrame, file_path: str):
-    df_copy = df.copy() # Avoid modifying the original DF
+    df_copy = df.copy()  # Avoid modifying the original DF
     # Convert UUIDs and datetime objects to string for CSV export
     for col in df_copy.select_dtypes(include=['object', 'category']).columns:
         if any(isinstance(x, (uuid.UUID, datetime, Enum)) for x in df_copy[col].dropna()):
@@ -408,11 +442,14 @@ def export_dataframe_to_csv(df: pd.DataFrame, file_path: str):
     # Convert lists to string representations for CSV
     for col in df_copy.select_dtypes(include=['object']).columns:
         if df_copy[col].apply(lambda x: isinstance(x, list)).any():
-            df_copy[col] = df_copy[col].apply(lambda x: json.dumps(x) if isinstance(x, list) else x)
+            df_copy[col] = df_copy[col].apply(
+                lambda x: json.dumps(x) if isinstance(x, list) else x)
     df_copy.to_csv(file_path, index=False)
     print(f"Generated: {file_path}")
 
 # Function to write Pydantic models to JSON
+
+
 def export_pydantic_list_to_json(data_list: List[BaseModel], file_path: str):
     with open(file_path, 'w') as f:
         # Use model_dump_json for Pydantic v2 or json() for Pydantic v1,
@@ -420,6 +457,7 @@ def export_pydantic_list_to_json(data_list: List[BaseModel], file_path: str):
         json_data = [item.model_dump(mode='json') for item in data_list]
         json.dump(json_data, f, indent=4)
     print(f"Generated: {file_path}")
+
 
 # Generate Model Inventory CSV
 export_dataframe_to_csv(inventory_df, model_inventory_csv_path)
@@ -493,6 +531,8 @@ with open(executive_summary_md_path, 'w') as f:
 print(f"Generated: {executive_summary_md_path}")
 
 print("\nAll core audit artifacts have been generated successfully.")
+
+
 def calculate_sha256(file_path: str) -> str:
     """Calculates the SHA-256 hash of a file."""
     sha256_hash = hashlib.sha256()
@@ -501,6 +541,7 @@ def calculate_sha256(file_path: str) -> str:
         for byte_block in iter(lambda: f.read(4096), b""):
             sha256_hash.update(byte_block)
     return sha256_hash.hexdigest()
+
 
 # List all generated artifact files
 generated_files = [
@@ -516,19 +557,21 @@ print("\n--- Calculating SHA-256 Hashes for Artifacts ---")
 for f_path in generated_files:
     file_name = os.path.basename(f_path)
     file_hash = calculate_sha256(f_path)
-    evidence_artifacts.append(EvidenceArtifact(name=file_name, path=f_path, sha256=file_hash))
+    evidence_artifacts.append(EvidenceArtifact(
+        name=file_name, path=f_path, sha256=file_hash))
     print(f"  - {file_name}: {file_hash}")
 
 # Create the Evidence Manifest
 evidence_manifest = EvidenceManifest(
     team_or_user="Sarah (AI Program Lead)",
     artifacts=evidence_artifacts,
-    run_id=uuid.uuid4(), # Generate a new run_id for this specific manifest generation
+    run_id=uuid.uuid4(),  # Generate a new run_id for this specific manifest generation
     generated_at=datetime.now()
 )
 
 # Define path for the evidence manifest
-evidence_manifest_json_path = os.path.join(output_dir, "evidence_manifest.json")
+evidence_manifest_json_path = os.path.join(
+    output_dir, "evidence_manifest.json")
 
 # Export the Evidence Manifest to JSON
 with open(evidence_manifest_json_path, 'w') as f:
@@ -537,11 +580,13 @@ print(f"\nGenerated: {evidence_manifest_json_path}")
 
 # Display the contents of the evidence manifest for verification
 print("\n--- Evidence Manifest Content ---")
-manifest_df = pd.DataFrame([art.model_dump() for art in evidence_manifest.artifacts])
-display(manifest_df)
+manifest_df = pd.DataFrame([art.model_dump()
+                           for art in evidence_manifest.artifacts])
+# display(manifest_df)
 # Define the name of the final ZIP archive
 zip_archive_name = "audit_package_ai_governance"
-zip_archive_path = os.path.join(".", zip_archive_name) # Will create zip in current directory
+# Will create zip in current directory
+zip_archive_path = os.path.join(".", zip_archive_name)
 
 # List all files to be included in the ZIP archive
 files_to_zip = [
@@ -552,6 +597,7 @@ files_to_zip = [
     evidence_manifest_json_path
 ]
 
+
 def create_zip_archive(files: List[str], archive_name: str, source_dir: str):
     """Creates a ZIP archive from a list of files."""
     # Ensure all files are in the specified source_dir for zipping relative paths
@@ -561,6 +607,7 @@ def create_zip_archive(files: List[str], archive_name: str, source_dir: str):
     for f in files:
         print(f"  - {os.path.basename(f)}")
     return f"{archive_name}.zip"
+
 
 # Create the ZIP archive
 final_zip_file = create_zip_archive(files_to_zip, zip_archive_path, output_dir)
